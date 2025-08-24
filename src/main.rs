@@ -1,4 +1,5 @@
 mod cli;
+mod config;
 mod error;
 
 use anyhow::Result;
@@ -20,8 +21,18 @@ async fn run(cli: Cli) -> Result<()> {
 }
 
 async fn execute_pull() -> Result<()> {
-    println!("Fetching content from configured sources...");
-    println!("Note: Pull command implementation coming in Stage 6");
+    use config::Config;
+
+    let config = Config::load()?;
+
+    println!(
+        "Fetching content from {} configured sources...",
+        config.sources.rss.len()
+    );
+    for source in &config.sources.rss {
+        println!("  - {} ({})", source.name, source.url);
+    }
+    println!("\nNote: Full pull command implementation coming in Stage 6");
     Ok(())
 }
 

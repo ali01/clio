@@ -1,0 +1,11 @@
+[[sources.rss]]
+name = "Hacker News"
+url = "https://news.ycombinator.com/rss"
+
+[[sources.rss]]
+name = "Julia Evans"
+url = "https://jvns.ca/atom.xml"
+
+[[sources.rss]]
+name = "Rust Blog"
+url = "https://blog.rust-lang.org/feed.xml"

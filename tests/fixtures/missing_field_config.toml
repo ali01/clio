@@ -1,0 +1,5 @@
+[[sources.rss]]
+name = "Missing URL"
+
+[[sources.rss]]
+url = "https://example.com/feed.xml"

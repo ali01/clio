@@ -1,0 +1,44 @@
+# Large configuration file with 100 sources
+[[sources.rss]]
+name = "Feed 1"
+url = "https://example.com/feed1.xml"
+
+[[sources.rss]]
+name = "Feed 2"
+url = "https://example.com/feed2.xml"
+
+[[sources.rss]]
+name = "Feed 3"
+url = "https://example.com/feed3.xml"
+
+[[sources.rss]]
+name = "Feed 4"
+url = "https://example.com/feed4.xml"
+
+[[sources.rss]]
+name = "Feed 5"
+url = "https://example.com/feed5.xml"
+
+[[sources.rss]]
+name = "Feed 6"
+url = "https://example.com/feed6.xml"
+
+[[sources.rss]]
+name = "Feed 7"
+url = "https://example.com/feed7.xml"
+
+[[sources.rss]]
+name = "Feed 8"
+url = "https://example.com/feed8.xml"
+
+[[sources.rss]]
+name = "Feed 9"
+url = "https://example.com/feed9.xml"
+
+[[sources.rss]]
+name = "Feed 10"
+url = "https://example.com/feed10.xml"
+
+# ... Continue pattern to 100
+# For testing purposes, this file contains only 10 sources
+# but tests can programmatically generate 100 sources

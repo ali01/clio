@@ -1,0 +1,2 @@
+# Configuration with no sources - should generate warning but not error
+[sources]

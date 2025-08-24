@@ -1,0 +1,7 @@
+[[sources.rss]]
+name = "Invalid URL"
+url = "not-a-valid-url"
+
+[[sources.rss]]
+name = "FTP URL"
+url = "ftp://example.com/feed.xml"

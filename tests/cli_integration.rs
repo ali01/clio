@@ -1,5 +1,9 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
+use std::sync::Mutex;
+
+// Use a mutex to ensure tests that manipulate ~/.clio don't run in parallel
+static CONFIG_MUTEX: Mutex<()> = Mutex::new(());
 
 #[test]
 fn test_clio_without_args_shows_help() {
@@ -34,23 +38,51 @@ fn test_clio_version_flag() {
 
 #[test]
 fn test_pull_command() {
+    let _guard = CONFIG_MUTEX.lock().unwrap();
+
+    // Clean up any existing config
+    let config_dir = dirs::home_dir().unwrap().join(".clio");
+    let _ = std::fs::remove_dir_all(&config_dir);
+
+    // Pull command should create config silently and work with default config
     let mut cmd = Command::cargo_bin("clio").unwrap();
     cmd.arg("pull")
         .assert()
         .success()
         .stdout(predicate::str::contains(
-            "Fetching content from configured sources",
+            "Fetching content from 2 configured sources",
         ));
+
+    // Verify config was created
+    assert!(config_dir.join("config.toml").exists());
+
+    // Clean up after test
+    let _ = std::fs::remove_dir_all(&config_dir);
 }
 
 #[test]
 fn test_pull_command_with_quiet() {
+    let _guard = CONFIG_MUTEX.lock().unwrap();
+
+    // Clean up any existing config
+    let config_dir = dirs::home_dir().unwrap().join(".clio");
+    let _ = std::fs::remove_dir_all(&config_dir);
+
+    // Pull command should create config silently and work even with --quiet
     let mut cmd = Command::cargo_bin("clio").unwrap();
     cmd.arg("--quiet")
         .arg("pull")
         .assert()
         .success()
-        .stdout(predicate::str::is_empty().not());
+        .stdout(predicate::str::contains(
+            "Fetching content from 2 configured sources",
+        ));
+
+    // Verify config was created
+    assert!(config_dir.join("config.toml").exists());
+
+    // Clean up after test
+    let _ = std::fs::remove_dir_all(&config_dir);
 }
 
 #[test]
@@ -123,10 +155,11 @@ fn test_invalid_command() {
 #[test]
 fn test_global_flags_order() {
     // Global flags should work before the subcommand
+    // Using 'list' instead of 'pull' since pull requires config
     let mut cmd = Command::cargo_bin("clio").unwrap();
-    cmd.arg("--quiet").arg("pull").assert().success();
+    cmd.arg("--quiet").arg("list").assert().success();
 
     // Global flags should also work after the subcommand
     let mut cmd = Command::cargo_bin("clio").unwrap();
-    cmd.arg("pull").arg("--quiet").assert().success();
+    cmd.arg("list").arg("--quiet").assert().success();
 }

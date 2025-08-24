@@ -1,0 +1,14 @@
+# Clio Configuration File
+
+[[sources.rss]]
+name = "Hacker News"
+url = "https://news.ycombinator.com/rss"
+
+[[sources.rss]]
+name = "Julia Evans"
+url = "https://jvns.ca/atom.xml"
+
+# Add more RSS/Atom sources below
+# [[sources.rss]]
+# name = "Example Blog"
+# url = "https://example.com/feed.xml"

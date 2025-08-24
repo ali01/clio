@@ -1,0 +1,7 @@
+[[sources.rss]]
+name = "Duplicate Feed"
+url = "https://example.com/feed1.xml"
+
+[[sources.rss]]
+name = "Duplicate Feed"
+url = "https://example.com/feed2.xml"
