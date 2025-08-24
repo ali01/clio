@@ -3,56 +3,33 @@ edition = "2024"
 
 # Maximum line length before wrapping
 max_width = 100
-# Controls when to break expressions into multiple lines ("Default", "Max", or "Off")
-use_small_heuristics = "Default"
 
 # Number of spaces per indentation level
 tab_spaces = 4
+
 # Use tabs instead of spaces for indentation
 hard_tabs = false
 
-# How to merge import statements ("Preserve", "Crate", "Module", or "Item")
-imports_granularity = "Crate"
-# How to group imports ("Preserve", "StdExternalCrate", or "One")
-group_imports = "StdExternalCrate"
 # Sort import statements alphabetically
 reorder_imports = true
+
 # Sort module declarations alphabetically
 reorder_modules = true
 
-# Wrap comments that exceed max_width
-wrap_comments = true
-# Format code snippets inside doc comments
-format_code_in_doc_comments = true
-# Convert /* */ comments to // where possible
-normalize_comments = true
-
-# Add trailing commas when list is formatted vertically
-trailing_comma = "Vertical"
-
 # Line ending style ("Unix" for LF, "Windows" for CRLF, "Native" for OS default)
 newline_style = "Unix"
-# Maximum consecutive blank lines to allow
-blank_lines_upper_bound = 1
-
-# Keep single-line functions on one line
-fn_single_line = false
-# Format string literals (can break stability)
-format_strings = false
-
-# Align struct fields if line length is below this threshold (0 = disabled)
-struct_field_align_threshold = 30
-# Align enum variants if line length is below this threshold (0 = disabled)
-enum_discrim_align_threshold = 30
-
-# Maximum width for method chains before breaking
-chain_width = 60
-# Sort impl items by kind (type, const, fn)
-reorder_impl_items = false
 
 # Use field init shorthand (field instead of field: field)
 use_field_init_shorthand = true
+
 # Use ? operator instead of try! macro
 use_try_shorthand = true
+
 # Remove unnecessary nested parentheses
 remove_nested_parens = true
+
+# Maximum width for method chains before breaking
+chain_width = 60
+
+# Controls when to break expressions into multiple lines ("Default", "Max", or "Off")
+use_small_heuristics = "Default"

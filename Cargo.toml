@@ -2,5 +2,35 @@
 name = "clio"
 version = "0.1.0"
 edition = "2024"
+authors = ["Clio Contributors"]
+description = "A simple command-line feed aggregator"
+license = "MIT"
 
 [dependencies]
+clap = { version = "4.5", features = ["derive"] }
+tokio = { version = "1.38", features = ["full"] }
+reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+rss = "2.0"
+atom_syndication = "0.12"
+toml = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde"] }
+crossterm = "0.27"
+html-escape = "0.2"
+unicode-width = "0.1"
+directories = "5.0"
+anyhow = "1.0"
+thiserror = "1.0"
+async-trait = "0.1"
+
+[dev-dependencies]
+mockito = "1.0"
+tempfile = "3.10"
+proptest = "1.4"
+assert_cmd = "2.0"
+predicates = "3.1"
+insta = "1.38"
+test-case = "3.1"
+criterion = "0.5"
+wiremock = "0.6"
+fake = "2.9"

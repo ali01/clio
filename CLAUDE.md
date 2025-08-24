@@ -29,7 +29,7 @@ cargo test --lib              # Unit tests only
 # Code Quality
 cargo fmt                     # Format code
 cargo fmt -- --check          # Check formatting
-cargo clippy -- -D warnings   # Run linter
+cargo lint                    # Run linter
 cargo check                   # Quick compilation check
 ```
 
