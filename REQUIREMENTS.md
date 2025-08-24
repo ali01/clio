@@ -90,13 +90,13 @@ When making network requests, the system shall use HTTPS when available.
 
 ### FET-006: Network Error Handling
 When a network error occurs while fetching a source, the system shall:
-- Log the error with the source name
+- Report the error with the source name
 - Continue fetching other sources
 - Not crash or exit
 
 ### FET-007: Malformed Feed Handling
 When a feed contains malformed XML or invalid RSS/Atom structure, the system shall:
-- Log an error message identifying the problematic source
+- Report an error message identifying the problematic source
 - Skip the malformed source
 - Continue processing other sources
 
@@ -123,7 +123,7 @@ When fetching content, the system shall not store duplicate items with the same 
 
 ### FET-013: HTTP Status Handling
 When a feed returns an HTTP error status (4xx or 5xx), the system shall:
-- Log the HTTP status code and source name
+- Report the HTTP status code and source name
 - Continue with other sources
 - Include the source in the failed count
 
@@ -131,7 +131,7 @@ When a feed returns an HTTP error status (4xx or 5xx), the system shall:
 When a feed URL returns a redirect (3xx status), the system shall follow up to 5 redirects before failing.
 
 ### FET-015: Empty Feed Handling
-When a feed contains no items, the system shall log this as informational and continue normally.
+When a feed contains no items, the system shall note this and continue normally.
 
 ## 4. Data Storage
 
@@ -272,10 +272,7 @@ When run without any command or with `--help`, the system shall display:
 The system shall not provide command aliases in the MVP.
 <!-- Keeping CLI simple for MVP -->
 
-### CLI-008: Verbose Flag
-The system shall support a `--verbose` flag for detailed logging output.
-
-### CLI-009: Quiet Flag
+### CLI-008: Quiet Flag
 The system shall support a `--quiet` flag that suppresses all non-error output.
 
 ## 8. Error Handling
@@ -286,9 +283,8 @@ When an unrecoverable error occurs, the system shall:
 - Include context about what operation failed
 - Exit with a non-zero status code
 
-### ERR-002: Recoverable Error Logging
+### ERR-002: Recoverable Error Handling
 When a recoverable error occurs, the system shall:
-- Log the error with context
 - Continue operation
 - Include the error in summary statistics if applicable
 
@@ -339,8 +335,8 @@ The system shall validate SSL/TLS certificates for HTTPS connections.
 The system shall not store any authentication credentials in the MVP.
 <!-- RSS/Atom feeds are typically public -->
 
-### SEC-004: No Credential Logging
-The system shall not log any URLs containing authentication tokens or credentials.
+### SEC-004: No Credential Exposure
+The system shall not expose any URLs containing authentication tokens or credentials in output.
 
 ### SEC-005: Configuration File Permissions
 The system shall ensure configuration files are readable only by the owner (permissions 600).
@@ -382,74 +378,7 @@ The system shall validate that item URLs are well-formed before storing them.
 ### VAL-006: Empty Title Handling
 When an item has an empty title after trimming whitespace, the system shall skip that item.
 
-## 13. Logging System
-
-### LOG-001: Log Levels
-The system shall support two log levels:
-- Normal: logs important operations, errors, and warnings
-- Debug: logs detailed operations including network requests, parsing details, and internal state changes
-
-### LOG-002: Log File Location
-The system shall write log output to a file located at `~/.clio/clio.log`.
-
-### LOG-003: Debug Flag
-The system shall support a `--debug` flag that enables debug-level logging for the current execution.
-
-### LOG-004: Default Log Level
-When the `--debug` flag is not specified, the system shall use normal log level.
-
-### LOG-005: Log Entry Format
-Each log entry shall include:
-- ISO 8601 timestamp with millisecond precision
-- Log level (INFO, DEBUG, WARN, ERROR)
-- Component or module name
-- Log message
-
-### LOG-006: Log File Creation
-When the log file does not exist, the system shall create it with user-only permissions (600).
-
-### LOG-007: Normal Level Logging
-At normal log level, the system shall log:
-- Application startup and shutdown
-- Configuration loading success/failure
-- Pull command start and completion with statistics
-- Network errors and feed parsing errors
-- Fatal errors that cause application exit
-
-### LOG-008: Debug Level Logging
-At debug log level, the system shall log everything from normal level plus:
-- Individual feed fetch start/completion
-- HTTP request/response details (excluding sensitive data)
-- Feed parsing details
-- Item deduplication actions
-- Configuration validation details
-- Browser launch commands
-
-### LOG-009: Concurrent Logging
-When multiple operations write to the log concurrently, the system shall ensure log entries are not interleaved or corrupted.
-
-### LOG-010: Log Write Failures
-When the system cannot write to the log file, it shall:
-- Continue operation without logging
-- Display a warning to stderr on first failure only
-- Not crash or exit due to logging failures
-
-### LOG-011: Sensitive Data Exclusion
-The system shall not log:
-- Full URLs containing authentication tokens or credentials
-- Any user credentials if encountered
-- Personal data from feed content
-
-### LOG-012: Performance Impact
-Logging operations shall not add more than 5% overhead to normal operations.
-
-### LOG-013: Log Buffer Flushing
-The system shall flush log buffers:
-- After each error or warning message
-- When the application exits
-- At least every 5 seconds during normal operation
-
-## 14. Testing Requirements
+## 13. Testing Requirements
 
 ### TST-001: Unit Test Coverage
 The system shall maintain at least 80% unit test coverage for all business logic modules.
@@ -516,7 +445,6 @@ The system shall include tests for:
 ### TST-010: Concurrent Operation Testing
 The system shall include tests for:
 - Parallel feed fetching
-- Concurrent logging
 - Race conditions in deduplication
 
 ### TST-011: Test Execution

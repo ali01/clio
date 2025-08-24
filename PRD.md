@@ -81,14 +81,6 @@ Create a simple, extensible command-line tool that serves as a unified inbox for
 - `--help` flag shall display usage information for each command
 - System shall provide feedback during long-running operations (fetching)
 
-**Logging System**
-- System shall support two log levels: normal and debug
-- Log output shall be written to a file in the configuration directory (~/.clio/clio.log)
-- Normal level shall log important operations and errors
-- Debug level shall log detailed operations, including network requests and parsing details
-- `--debug` flag shall enable debug logging level
-- Log entries shall include timestamp, level, and component/module name
-
 ### Non-Functional Requirements
 
 **Performance**
@@ -117,7 +109,6 @@ Create a simple, extensible command-line tool that serves as a unified inbox for
 
 **Security**
 - HTTPS should be used for all network requests when available
-- No credentials or sensitive data should be logged
 - Configuration files should have appropriate file permissions (user-only access)
 
 ### Architecture

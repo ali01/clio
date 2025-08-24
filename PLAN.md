@@ -20,7 +20,6 @@ src/
 ├── storage.rs        # In-memory storage management
 ├── display.rs        # Terminal UI and pagination
 ├── browser.rs        # Browser launching functionality
-├── logger.rs         # Logging system
 └── error.rs          # Error types and handling
 ```
 
@@ -101,8 +100,6 @@ enum ClioError {
 - `serde` (v1) - Serialization/deserialization
 - `chrono` (v0.4) - Date/time handling
 - `crossterm` (v0.27) - Terminal manipulation for pagination
-- `tracing` (v0.1) - Structured logging
-- `tracing-subscriber` (v0.3) - Log output formatting
 - `html-escape` (v0.2) - HTML entity decoding
 - `unicode-width` (v0.1) - Terminal text width calculation
 - `directories` (v5) - Platform-specific directory paths
@@ -143,7 +140,7 @@ enum ClioError {
 4. **Implement CLI structure** (cli.rs)
    - Define `Cli` struct with clap derive macros
    - Create subcommands: `Pull`, `List`, `Open`
-   - Add global flags: `--debug`, `--verbose`, `--quiet`
+   - Add global flag: `--quiet`
    - Implement help text and usage examples
    - **Tests**: Command parsing tests, help text tests
 
@@ -179,29 +176,7 @@ enum ClioError {
    - Invalid config files (malformed TOML, missing fields, duplicate names)
    - Edge cases (empty config, very large config)
 
-### Stage 3: Logging System
-**Goal**: Implement structured logging with file output and testing
-
-1. **Set up logging infrastructure** (logger.rs)
-   - Configure tracing with file appender
-   - Set up log levels (normal/debug)
-   - Create formatters for log entries
-   - Ensure thread-safe concurrent logging
-   - **Tests**: Log level tests, format tests, concurrent logging tests
-
-2. **Add log macros throughout codebase**
-   - Info level for major operations
-   - Debug level for detailed operations
-   - Error level for failures
-   - Ensure no sensitive data in logs
-   - **Tests**: Verify sensitive data filtering, log output tests
-
-3. **Test log file operations**
-   - File creation with correct permissions
-   - Log rotation (if implemented)
-   - Handling of write failures
-
-### Stage 4: Source Abstraction
+### Stage 3: Source Abstraction
 **Goal**: Create extensible source system with comprehensive testing
 
 1. **Define Source trait** (source/mod.rs)
@@ -231,7 +206,7 @@ enum ClioError {
    - Feeds with various date formats
    - Feeds with HTML entities and Unicode
 
-### Stage 5: Content Fetching
+### Stage 4: Content Fetching
 **Goal**: Implement parallel feed fetching with testing
 
 1. **Create fetcher module** (fetcher.rs)
@@ -257,7 +232,7 @@ enum ClioError {
    - Verify 30-second completion
    - Memory usage monitoring
 
-### Stage 6: Storage System
+### Stage 5: Storage System
 **Goal**: Implement in-memory item storage with testing
 
 1. **Create storage module** (storage.rs)
@@ -281,7 +256,7 @@ enum ClioError {
      - Concurrent access tests
      - Memory usage tests with large datasets
 
-### Stage 7: Pull Command
+### Stage 6: Pull Command
 **Goal**: Implement the full pull workflow with integration testing
 
 1. **Implement pull command handler**
@@ -297,7 +272,7 @@ enum ClioError {
 
 2. **Add error recovery**
    - Continue on individual source failures
-   - Log errors appropriately
+   - Report errors appropriately
    - Report statistics at completion
    - **Tests**:
      - Partial failure scenarios
@@ -309,7 +284,7 @@ enum ClioError {
    - Verify output format
    - Test exit codes
 
-### Stage 8: Display System
+### Stage 7: Display System
 **Goal**: Create terminal UI for listing items with comprehensive testing
 
 1. **Implement basic display** (display.rs)
@@ -340,7 +315,7 @@ enum ClioError {
      - Whitespace normalization tests
      - Snapshot tests for formatted output
 
-### Stage 9: List Command
+### Stage 8: List Command
 **Goal**: Display fetched items with pagination and testing
 
 1. **Implement list command handler**
@@ -362,7 +337,7 @@ enum ClioError {
      - Navigation boundary tests
      - State management tests
 
-### Stage 10: Browser Integration
+### Stage 9: Browser Integration
 **Goal**: Open items in default browser with testing
 
 1. **Create browser module** (browser.rs)
@@ -383,7 +358,7 @@ enum ClioError {
      - Command output verification
      - Exit code tests
 
-### Stage 11: Polish and Final Testing
+### Stage 10: Polish and Final Testing
 **Goal**: Ensure all requirements are met with comprehensive test coverage
 
 1. **Performance optimization and benchmarking**
@@ -416,9 +391,9 @@ enum ClioError {
 5. **Security review**
    - HTTPS preference
    - Certificate validation
-   - No credential logging
+   - No credential exposure
    - File permissions
-   - **Security tests**: Permission tests, credential scrubbing tests
+   - **Security tests**: Permission tests, credential protection tests
 
 ## How Requirements Are Met
 
@@ -456,11 +431,11 @@ enum ClioError {
 - macOS-specific implementation
 - Error handling with URL display
 
-### CLI Interface (CLI-001 to CLI-009)
+### CLI Interface (CLI-001 to CLI-008)
 - Clap-based command structure
 - Comprehensive help text
 - Standard exit codes
-- Verbose and quiet flags
+- Quiet flag for suppressing output
 
 ### Error Handling (ERR-001 to ERR-006)
 - Structured error types
@@ -477,15 +452,8 @@ enum ClioError {
 ### Security (SEC-001 to SEC-007)
 - HTTPS enforcement
 - Certificate validation
-- No credential storage/logging
+- No credential storage or exposure
 - Restricted URL schemes
-
-### Logging (LOG-001 to LOG-013)
-- Two-level logging system
-- File output to ~/.clio/clio.log
-- Structured log entries
-- Thread-safe concurrent logging
-- No sensitive data in logs
 
 ### Testing (TST-001 to TST-015)
 - 80%+ unit test coverage for business logic
@@ -512,7 +480,6 @@ enum ClioError {
 - **Storage**: Deduplication, sorting, memory usage
 - **Display**: Truncation, Unicode, pagination calculations
 - **Browser**: Command execution mocking, URL handling
-- **Logger**: Format verification, concurrent writes, permission tests
 
 ### Mock Infrastructure
 - **Network**: `mockito` or `wiremock` for HTTP responses
