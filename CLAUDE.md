@@ -44,3 +44,4 @@ cargo check                   # Quick compilation check
 - Never use #[allow(dead_code)]. Either we expect the warning and should use #[expect(dead_code)], or we don't expect it.
 - Rust functions/methods should only ever be public if strictly necessary.
 - Public functions/methods should always appear in a file above private ones
+- All Rust code should have modern 2025 style.

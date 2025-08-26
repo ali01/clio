@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Developer Blog</title>
+  <link href="https://devblog.example.com" rel="self"/>
+  <link href="https://devblog.example.com"/>
+  <updated>2025-01-01T12:00:00Z</updated>
+  <author>
+    <name>Dev Team</name>
+    <email>team@devblog.example.com</email>
+  </author>
+  <id>https://devblog.example.com/feed</id>
+
+  <entry>
+    <title>Understanding Async Rust</title>
+    <link href="https://devblog.example.com/async-rust" rel="alternate"/>
+    <id>https://devblog.example.com/async-rust</id>
+    <published>2025-01-01T10:00:00Z</published>
+    <updated>2025-01-01T10:30:00Z</updated>
+    <summary>A deep dive into Rust's async/await system and how to use it effectively in production applications.</summary>
+    <content type="html">
+      &lt;p&gt;Async programming in Rust has evolved significantly. This post explores the tokio runtime, async traits, and common patterns.&lt;/p&gt;
+      &lt;p&gt;We'll cover error handling, cancellation, and performance optimization techniques.&lt;/p&gt;
+    </content>
+    <author>
+      <name>Alice Developer</name>
+    </author>
+  </entry>
+
+  <entry>
+    <title>Building CLI Tools with Clap</title>
+    <link href="https://devblog.example.com/cli-clap" rel="alternate"/>
+    <id>https://devblog.example.com/cli-clap</id>
+    <published>2024-12-28T14:00:00Z</published>
+    <updated>2024-12-28T14:00:00Z</updated>
+    <summary>Learn how to create powerful command-line interfaces using Rust's Clap library.</summary>
+  </entry>
+
+  <entry>
+    <title>Memory Safety Without Garbage Collection</title>
+    <link href="https://devblog.example.com/memory-safety" rel="alternate"/>
+    <id>https://devblog.example.com/memory-safety</id>
+    <published>2024-12-25T09:00:00Z</published>
+    <updated>2024-12-26T10:00:00Z</updated>
+    <summary>Exploring Rust's ownership system and how it guarantees memory safety at compile time.</summary>
+    <content type="text">
+      Rust's ownership model is unique among systems programming languages. It provides memory safety guarantees without the overhead of garbage collection.
+    </content>
+  </entry>
+</feed>

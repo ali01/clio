@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Date Format Test Feed</title>
+    <link>https://example.com</link>
+    <description>Testing various date formats</description>
+
+    <!-- RFC 2822 format (standard RSS) -->
+    <item>
+      <title>RFC 2822 Date Format</title>
+      <link>https://example.com/rfc2822</link>
+      <description>Standard RSS date format</description>
+      <pubDate>Wed, 01 Jan 2025 12:00:00 +0000</pubDate>
+    </item>
+
+    <!-- RFC 2822 with timezone abbreviation -->
+    <item>
+      <title>RFC 2822 with GMT</title>
+      <link>https://example.com/rfc2822-gmt</link>
+      <description>With GMT timezone</description>
+      <pubDate>Wed, 01 Jan 2025 12:00:00 GMT</pubDate>
+    </item>
+
+    <!-- RFC 2822 with different timezone -->
+    <item>
+      <title>RFC 2822 with EST</title>
+      <link>https://example.com/rfc2822-est</link>
+      <description>With EST timezone</description>
+      <pubDate>Wed, 01 Jan 2025 07:00:00 -0500</pubDate>
+    </item>
+
+    <!-- ISO 8601 format (sometimes found in RSS) -->
+    <item>
+      <title>ISO 8601 Format</title>
+      <link>https://example.com/iso8601</link>
+      <description>ISO format date</description>
+      <pubDate>2025-01-01T12:00:00Z</pubDate>
+    </item>
+
+    <!-- ISO 8601 with milliseconds -->
+    <item>
+      <title>ISO 8601 with Milliseconds</title>
+      <link>https://example.com/iso8601-ms</link>
+      <description>ISO format with milliseconds</description>
+      <pubDate>2025-01-01T12:00:00.123Z</pubDate>
+    </item>
+
+    <!-- Common variation without timezone -->
+    <item>
+      <title>No Timezone Format</title>
+      <link>https://example.com/no-tz</link>
+      <description>Date without timezone info</description>
+      <pubDate>2025-01-01 12:00:00</pubDate>
+    </item>
+
+    <!-- Invalid date format (should be skipped) -->
+    <item>
+      <title>Invalid Date Format</title>
+      <link>https://example.com/invalid-date</link>
+      <description>This item has an invalid date</description>
+      <pubDate>Not a valid date</pubDate>
+    </item>
+
+    <!-- Missing date (should still be included) -->
+    <item>
+      <title>No Date Item</title>
+      <link>https://example.com/no-date</link>
+      <description>This item has no date</description>
+    </item>
+  </channel>
+</rss>

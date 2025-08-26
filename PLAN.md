@@ -4,7 +4,7 @@
 
 - ✅ **Stage 1: Foundation** - CLI structure, error handling, testing infrastructure
 - ✅ **Stage 2: Configuration Management** - TOML config loading and validation
-- ⏳ **Stage 3: Source Abstraction** - Source trait and RSS/Atom implementation
+- ✅ **Stage 3: Source Abstraction** - Source trait and RSS/Atom implementation
 - ⏳ **Stage 4: Content Fetching** - Parallel feed fetching
 - ⏳ **Stage 5: Storage System** - In-memory item storage
 - ⏳ **Stage 6: Pull Command** - Full pull workflow
@@ -26,13 +26,14 @@ src/
 ├── main.rs           # Entry point, CLI setup
 ├── cli.rs            # Command-line interface using clap
 ├── config.rs         # Configuration management
-├── source/           # Source abstraction and implementations
-│   ├── mod.rs        # Source trait definition
+├── source.rs         # Source trait definition (modern Rust 2025 style)
+├── source/           # Source implementations
 │   └── rss.rs        # RSS/Atom feed implementation
-├── fetcher.rs        # Parallel content fetching orchestration
-├── storage.rs        # In-memory storage management
-├── display.rs        # Terminal UI and pagination
-├── browser.rs        # Browser launching functionality
+├── fetcher.rs        # Parallel content fetching orchestration (not yet implemented)
+├── storage.rs        # In-memory storage management (not yet implemented)
+├── display.rs        # Terminal UI and pagination (not yet implemented)
+├── browser.rs        # Browser launching functionality (not yet implemented)
+├── lib.rs            # Library root, module declarations
 └── error.rs          # Error types and handling
 ```
 
@@ -78,11 +79,11 @@ enum FetchResult {
 
 ### Traits
 
-#### `Source` (source/mod.rs)
+#### `Source` (source.rs)
 ```rust
 #[async_trait]
-trait Source {
-    async fn fetch(&self) -> Result<Vec<Item>, SourceError>;
+pub trait Source: Send + Sync + Debug {
+    async fn pull(&self) -> Result<Vec<Item>, ClioError>;
     fn name(&self) -> &str;
     fn url(&self) -> &str;
 }
@@ -212,35 +213,46 @@ enum ClioError {
 - Comprehensive test coverage with 292 lines of integration tests
 - Using `#[expect(dead_code)]` for methods that will be used in later stages
 
-### Stage 3: Source Abstraction
+### Stage 3: Source Abstraction ✅ COMPLETED
 **Goal**: Create extensible source system with comprehensive testing
 
-1. **Define Source trait** (source/mod.rs)
-   - Async fetch method returning items
+1. **Define Source trait** (source.rs) ✅
+   - Async pull method returning items (renamed from fetch for consistency)
    - Name and URL accessors
-   - Error handling
+   - Error handling with ClioError
+   - Send + Sync + Debug bounds for async usage
    - **Tests**: Mock source implementation for testing
 
-2. **Implement RSS/Atom source** (source/rss.rs)
-   - HTTP client setup with timeouts
-   - RSS 2.0 parsing
-   - Atom 1.0 parsing
-   - HTML entity decoding
-   - Date parsing (multiple formats)
+2. **Implement RSS/Atom source** (source/rss.rs) ✅
+   - HTTP client setup with 10-second timeout
+   - RSS 2.0 parsing with `rss` crate
+   - Atom 1.0 parsing with `atom_syndication` crate
+   - HTML entity decoding with `html_escape`
+   - Date parsing (RFC 2822, RFC 3339, ISO 8601, and variants)
    - Field extraction and validation
+   - Whitespace normalization
+   - UUID generation for item IDs
    - **Tests**:
-     - Parsing tests with fixture files
-     - Network tests with mockito/wiremock
-     - Date parsing property tests
+     - Unit tests for all parsing functions
+     - Integration tests with wiremock
+     - Property-based testing with proptest
      - Malformed feed handling tests
-     - Timeout tests
+     - HTTP error handling tests
 
-3. **Create test fixtures**
-   - Sample RSS 2.0 feeds (valid, minimal, complex)
-   - Sample Atom 1.0 feeds
+3. **Create test fixtures** ✅
+   - Sample RSS 2.0 feeds (detailed, with entities, date formats)
+   - Sample Atom 1.0 feeds (detailed)
    - Malformed XML files
    - Feeds with various date formats
    - Feeds with HTML entities and Unicode
+
+**Implementation Notes:**
+- Used modern Rust 2025 style with `source.rs` instead of `source/mod.rs`
+- Renamed `RssFeedSource` to `RssSource` for brevity
+- Renamed `fetch()` method to `pull()` for consistency with CLI command
+- Used `unwrap_or_default()` for safer HTTP client initialization
+- Fixed all clippy lints (inline format strings, no unnecessary allocations)
+- Comprehensive test coverage with 27 unit tests and 18 integration tests
 
 ### Stage 4: Content Fetching
 **Goal**: Implement parallel feed fetching with testing

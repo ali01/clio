@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Malformed Feed</title>
+    <link>https://example.com</link>
+    <description>This feed has XML errors</description>
+    <item>
+      <title>Unclosed Tag Item
+      <link>https://example.com/unclosed</link>
+      <description>This item has an unclosed title tag</description>
+    </item>
+    <item>
+      <title>Missing closing bracket</title
+      <link>https://example.com/missing-bracket</link>
+    </item>
+  </channel>
