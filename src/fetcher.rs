@@ -84,7 +84,9 @@ impl Fetcher {
                 }
                 Err(e) => {
                     stats.failed_sources += 1;
-                    stats.errors.push(("Unknown".to_string(), format!("Task failed: {e}")));
+                    stats
+                        .errors
+                        .push(("Unknown".to_string(), format!("Task failed: {e}")));
                 }
             }
         }

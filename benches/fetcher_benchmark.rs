@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use clio::{ClioError, Fetcher, Item, Source};
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -30,7 +30,10 @@ impl Source for BenchmarkSource {
         }
 
         if self.should_fail {
-            Err(ClioError::Network(format!("Simulated failure for {}", self.name)))
+            Err(ClioError::Network(format!(
+                "Simulated failure for {}",
+                self.name
+            )))
         } else {
             Ok(self.items.clone())
         }
@@ -54,19 +57,19 @@ fn create_100_sources() -> Vec<Arc<dyn Source>> {
             // 5% failure rate, varying delays
             let should_fail = i % 20 == 0;
             let delay = if i % 10 == 0 {
-                50  // 10% slow sources
+                50 // 10% slow sources
             } else if i % 5 == 0 {
-                20  // 20% medium sources
+                20 // 20% medium sources
             } else {
-                5   // 70% fast sources
+                5 // 70% fast sources
             };
 
             let items = if should_fail {
                 vec![]
             } else {
-                (0..3).map(|j|
-                    create_test_item(&format!("{i}-{j}"), &format!("Source{i:03}"))
-                ).collect()
+                (0..3)
+                    .map(|j| create_test_item(&format!("{i}-{j}"), &format!("Source{i:03}")))
+                    .collect()
             };
 
             Arc::new(BenchmarkSource {
@@ -154,8 +157,7 @@ fn benchmark_memory_usage_100_sources(c: &mut Criterion) {
 
                 // Force retention of all data
                 let total_memory_estimate =
-                    items.len() * std::mem::size_of::<Item>() +
-                    stats.errors.len() * 100; // Estimate for error strings
+                    items.len() * std::mem::size_of::<Item>() + stats.errors.len() * 100; // Estimate for error strings
 
                 // Verify memory usage is reasonable
                 assert!(total_memory_estimate < 10_000_000); // Less than 10MB

@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use clio::{ClioError, FetchStats, Fetcher, Item, Source};
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 use tokio::time::sleep;
 use wiremock::matchers::{method, path};
@@ -333,9 +333,7 @@ async fn test_stats_display_summary() {
     stats.successful_sources = 2;
     stats.failed_sources = 1;
     stats.total_items = 5;
-    stats.errors = vec![
-        ("BadSource".to_string(), "Connection failed".to_string()),
-    ];
+    stats.errors = vec![("BadSource".to_string(), "Connection failed".to_string())];
 
     // This test verifies the display_summary method runs without panic
     stats.display_summary();

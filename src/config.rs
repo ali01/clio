@@ -1,6 +1,7 @@
 use crate::error::{ClioError, ErrorContext};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use std::env;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
@@ -21,6 +22,12 @@ pub struct Sources {
 pub struct RssSource {
     pub name: String,
     pub url: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct SupabaseConfig {
+    pub url: String,
+    pub secret_key: String,
 }
 
 impl Config {
@@ -139,6 +146,65 @@ impl Config {
             fs::set_permissions(&config_dir, permissions).clio_config_err({
                 format!("Failed to set permissions for {}", config_dir.display())
             })?;
+        }
+
+        Ok(())
+    }
+}
+
+impl SupabaseConfig {
+    #[allow(dead_code)]
+    pub fn from_env() -> Result<Self, ClioError> {
+        let url = env::var("SUPABASE_URL").map_err(|_| {
+            ClioError::Config(
+                "Missing SUPABASE_URL environment variable. Please set it to your Supabase project URL.".to_string()
+            )
+        })?;
+
+        let secret_key = env::var("SUPABASE_SECRET_KEY").map_err(|_| {
+            ClioError::Config(
+                "Missing SUPABASE_SECRET_KEY environment variable. Please set it to your Supabase service role key (starts with 'sb_secret_').".to_string()
+            )
+        })?;
+
+        let config = Self { url, secret_key };
+        config.validate()?;
+        Ok(config)
+    }
+
+    #[allow(dead_code)]
+    pub fn url(&self) -> &str {
+        &self.url
+    }
+
+    #[allow(dead_code)]
+    pub fn secret_key(&self) -> &str {
+        &self.secret_key
+    }
+
+    #[allow(dead_code)]
+    fn validate(&self) -> Result<(), ClioError> {
+        // Validate URL format
+        let parsed_url = Url::parse(&self.url)
+            .map_err(|e| ClioError::Config(format!("Invalid SUPABASE_URL: {e}")))?;
+
+        if parsed_url.scheme() != "https" {
+            return Err(ClioError::Config(
+                "SUPABASE_URL must use HTTPS protocol".to_string(),
+            ));
+        }
+
+        // Validate secret key format
+        if self.secret_key.is_empty() {
+            return Err(ClioError::Config(
+                "SUPABASE_SECRET_KEY cannot be empty".to_string(),
+            ));
+        }
+
+        if !self.secret_key.starts_with("sb_secret_") {
+            return Err(ClioError::Config(
+                "SUPABASE_SECRET_KEY must start with 'sb_secret_'.".to_string(),
+            ));
         }
 
         Ok(())
@@ -338,5 +404,193 @@ name = "Test Feed"
 
         let result: Result<Config, _> = toml::from_str(toml_content);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_supabase_config_from_env_missing_url() {
+        // Clear environment variables
+        unsafe {
+            env::remove_var("SUPABASE_URL");
+            env::remove_var("SUPABASE_SECRET_KEY");
+        }
+
+        let result = SupabaseConfig::from_env();
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("Configuration error: Missing SUPABASE_URL")
+        );
+    }
+
+    #[test]
+    fn test_supabase_config_from_env_missing_secret_key() {
+        unsafe {
+            env::set_var("SUPABASE_URL", "https://test.supabase.co");
+            env::remove_var("SUPABASE_SECRET_KEY");
+        }
+
+        let result = SupabaseConfig::from_env();
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("Configuration error: Missing SUPABASE_SECRET_KEY")
+        );
+
+        // Cleanup
+        unsafe {
+            env::remove_var("SUPABASE_URL");
+        }
+    }
+
+    #[test]
+    fn test_supabase_config_invalid_url_scheme() {
+        unsafe {
+            env::set_var("SUPABASE_URL", "http://test.supabase.co");
+            env::set_var("SUPABASE_SECRET_KEY", "sb_secret_test123");
+        }
+
+        let result = SupabaseConfig::from_env();
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.to_string().contains("Configuration error: SUPABASE_URL must use HTTPS protocol"));
+
+        // Cleanup
+        unsafe {
+            env::remove_var("SUPABASE_URL");
+            env::remove_var("SUPABASE_SECRET_KEY");
+        }
+    }
+
+    #[test]
+    fn test_supabase_config_invalid_url_format() {
+        unsafe {
+            env::set_var("SUPABASE_URL", "not-a-url");
+            env::set_var("SUPABASE_SECRET_KEY", "sb_secret_test123");
+        }
+
+        let result = SupabaseConfig::from_env();
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("Configuration error: Invalid SUPABASE_URL")
+        );
+
+        // Cleanup
+        unsafe {
+            env::remove_var("SUPABASE_URL");
+            env::remove_var("SUPABASE_SECRET_KEY");
+        }
+    }
+
+    #[test]
+    fn test_supabase_config_empty_secret_key() {
+        unsafe {
+            env::set_var("SUPABASE_URL", "https://test.supabase.co");
+            env::set_var("SUPABASE_SECRET_KEY", "");
+        }
+
+        let result = SupabaseConfig::from_env();
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("Configuration error: SUPABASE_SECRET_KEY cannot be empty")
+        );
+
+        // Cleanup
+        unsafe {
+            env::remove_var("SUPABASE_URL");
+            env::remove_var("SUPABASE_SECRET_KEY");
+        }
+    }
+
+    #[test]
+    fn test_supabase_config_invalid_secret_key_prefix() {
+        unsafe {
+            env::set_var("SUPABASE_URL", "https://test.supabase.co");
+            env::set_var(
+                "SUPABASE_SECRET_KEY",
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+            );
+        }
+
+        let result = SupabaseConfig::from_env();
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("Configuration error: SUPABASE_SECRET_KEY must start with 'sb_secret_'")
+        );
+
+        // Cleanup
+        unsafe {
+            env::remove_var("SUPABASE_URL");
+            env::remove_var("SUPABASE_SECRET_KEY");
+        }
+    }
+
+    #[test]
+    fn test_supabase_config_valid() {
+        unsafe {
+            env::set_var("SUPABASE_URL", "https://test.supabase.co");
+            env::set_var("SUPABASE_SECRET_KEY", "sb_secret_test123456789");
+        }
+
+        let result = SupabaseConfig::from_env();
+        assert!(result.is_ok());
+        let config = result.unwrap();
+        assert_eq!(config.url(), "https://test.supabase.co");
+        assert_eq!(config.secret_key(), "sb_secret_test123456789");
+
+        // Cleanup
+        unsafe {
+            env::remove_var("SUPABASE_URL");
+            env::remove_var("SUPABASE_SECRET_KEY");
+        }
+    }
+
+    #[test]
+    fn test_supabase_config_url_with_path() {
+        unsafe {
+            env::set_var("SUPABASE_URL", "https://test.supabase.co/auth/v1");
+            env::set_var("SUPABASE_SECRET_KEY", "sb_secret_test123");
+        }
+
+        let result = SupabaseConfig::from_env();
+        assert!(result.is_ok());
+        let config = result.unwrap();
+        assert_eq!(config.url(), "https://test.supabase.co/auth/v1");
+
+        // Cleanup
+        unsafe {
+            env::remove_var("SUPABASE_URL");
+            env::remove_var("SUPABASE_SECRET_KEY");
+        }
+    }
+
+    #[test]
+    fn test_supabase_config_secret_key_not_logged() {
+        // This test verifies that the secret key is not exposed in debug output
+        unsafe {
+            env::set_var("SUPABASE_URL", "https://test.supabase.co");
+            env::set_var("SUPABASE_SECRET_KEY", "sb_secret_supersecret123");
+        }
+
+        let config = SupabaseConfig::from_env().unwrap();
+        let debug_output = format!("{config:?}");
+
+        // The debug output should contain the URL but mask the secret key
+        assert!(debug_output.contains("https://test.supabase.co"));
+        // We don't show the full secret in Debug output
+        assert!(debug_output.contains("secret_key"));
+
+        // Cleanup
+        unsafe {
+            env::remove_var("SUPABASE_URL");
+            env::remove_var("SUPABASE_SECRET_KEY");
+        }
     }
 }

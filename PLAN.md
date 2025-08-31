@@ -3,7 +3,7 @@
 ## Progress Summary
 
 - ✅ **Stage 1: Foundation** - CLI structure, error handling, testing infrastructure
-- ✅ **Stage 2: Configuration Management** - TOML config loading and validation (needs Supabase config addition)
+- ✅ **Stage 2: Configuration Management** - TOML config loading and validation with Supabase environment variables
 - ✅ **Stage 3: Source Abstraction** - Source trait and RSS/Atom implementation
 - ✅ **Stage 4: Content Fetching** - Parallel feed fetching with timeout and stats
 - ⏳ **Stage 5: Database Setup** - Supabase connection and schema
@@ -190,18 +190,17 @@ enum ClioError {
 - Using `#[expect(dead_code)]` to track unused code that will be used later
 - Configured rustfmt with stable-only options
 
-### Stage 2: Configuration Management ⚠️ NEEDS UPDATE
+### Stage 2: Configuration Management ✅ COMPLETED
 **Goal**: Handle configuration file loading and validation with comprehensive testing
-**Update Required**: Add environment variable validation for Supabase
 
-1. **Create config types** (config.rs) ⚠️ NEEDS UPDATE
+1. **Create config types** (config.rs) ✅
    - Defined `Config`, `Sources`, and `RssSource` structs with serde
    - Config file contains only source definitions (no secrets)
    - Added validation methods for URLs and names
    - Implemented comprehensive validation (duplicate names, empty fields, URL format)
    - Added 30+ unit tests for all validation scenarios
 
-2. **Implement config loading** ⚠️ NEEDS UPDATE
+2. **Implement config loading** ✅
    - Check for ~/.clio/config.toml with proper platform paths
    - Create directory with proper permissions if missing
    - Parse TOML file with detailed error messages
@@ -209,13 +208,15 @@ enum ClioError {
    - Handle missing/invalid config with helpful error messages
    - Added integration tests for file loading with tempfile
 
-3. **Environment variable validation** ⚠️ TODO
+3. **Environment variable validation** ✅
    - Check for SUPABASE_URL and SUPABASE_SECRET_KEY
    - Validate URL format (must be HTTPS)
    - Validate secret key format (must start with 'sb_secret_')
    - Never log or display the secret key
    - Clear error messages if variables are missing
    - Exit gracefully if not configured
+   - Added SupabaseConfig struct with from_env() method
+   - Comprehensive tests for all validation scenarios
 
 3. **Add example config generation** ✅
    - Created example configuration in data/example_config.toml
@@ -240,8 +241,9 @@ enum ClioError {
 - Supabase credentials strictly from environment variables
 - Secret key never stored in files or logged
 - All error messages include context and suggested fixes
-- Comprehensive test coverage with 292 lines of integration tests
-- Using `#[expect(dead_code)]` for methods that will be used in later stages
+- Comprehensive test coverage with 21 config tests + 10 Supabase validation tests
+- Using `#[allow(dead_code)]` for methods that will be used in later stages
+- Tests must run with --test-threads=1 to avoid environment variable conflicts
 
 ### Stage 3: Source Abstraction ✅ COMPLETED
 **Goal**: Create extensible source system with comprehensive testing

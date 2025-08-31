@@ -54,13 +54,9 @@ fn arb_iso8601_date() -> impl Strategy<Value = String> {
     )
         .prop_map(|(year, month, day, hour, min, sec, millis)| {
             if let Some(ms) = millis {
-                format!(
-                    "{year:04}-{month:02}-{day:02}T{hour:02}:{min:02}:{sec:02}.{ms:03}Z"
-                )
+                format!("{year:04}-{month:02}-{day:02}T{hour:02}:{min:02}:{sec:02}.{ms:03}Z")
             } else {
-                format!(
-                    "{year:04}-{month:02}-{day:02}T{hour:02}:{min:02}:{sec:02}Z"
-                )
+                format!("{year:04}-{month:02}-{day:02}T{hour:02}:{min:02}:{sec:02}Z")
             }
         })
 }
