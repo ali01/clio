@@ -18,12 +18,14 @@ When creating the configuration file, the system shall set file permissions to u
 The system shall parse configuration files in TOML format with the following structure:
 - Array of sources under `[[sources.rss]]`
 - Each source containing required fields: `name` (string) and `url` (string)
+<!-- Supabase configuration handled via environment variables only -->
 
 ### CFG-005: Configuration Validation
 When loading configuration, the system shall validate that:
 - Each source has a non-empty `name` field
 - Each source has a valid URL in the `url` field
 - The URL uses HTTP or HTTPS protocol
+<!-- Supabase validation happens separately via environment variables -->
 
 ### CFG-006: Missing Configuration Handling
 When the configuration file does not exist, the system shall display an error message with:
@@ -39,6 +41,23 @@ When the configuration file contains invalid TOML syntax, the system shall:
 
 ### CFG-008: Empty Configuration Handling
 When the configuration file exists but contains no sources, the system shall display a warning message and continue operation.
+
+### CFG-009: Environment Variable Requirements
+The system shall require the following environment variables for database connection:
+- `SUPABASE_URL`: The Supabase project URL (must be HTTPS)
+- `SUPABASE_SECRET_KEY`: The secret key for full database access
+
+### CFG-010: Missing Environment Variables
+When required environment variables are not set, the system shall:
+- Display a clear error message listing the missing variables
+- Provide instructions for setting them
+- Exit with a non-zero status code
+
+### CFG-011: Environment Variable Validation
+When validating environment variables, the system shall:
+- Verify SUPABASE_URL is a valid HTTPS URL
+- Verify SUPABASE_SECRET_KEY is not empty and starts with 'sb_secret_'
+- Never log or display the secret key value
 
 ## 2. Source Management
 
@@ -118,8 +137,11 @@ When the pull command completes, the system shall display:
 - Number of sources that failed (if any)
 
 ### FET-012: Duplicate Detection
-When fetching content, the system shall not store duplicate items with the same URL.
-<!-- Deduplication based on URL ensures the same article isn't shown multiple times -->
+When fetching content, the system shall:
+- Check existing items in the database before inserting
+- Skip items with URLs that already exist (using unique constraint)
+- Update the updated_at timestamp for existing items if content has changed
+<!-- Database-level deduplication ensures consistency -->
 
 ### FET-013: HTTP Status Handling
 When a feed returns an HTTP error status (4xx or 5xx), the system shall:
@@ -135,32 +157,54 @@ When a feed contains no items, the system shall note this and continue normally.
 
 ## 4. Data Storage
 
-### STO-001: In-Memory Storage
-The system shall store all fetched items in memory during runtime.
-<!-- MVP does not include persistent storage between sessions -->
+### STO-001: Persistent Storage with Supabase
+The system shall store all fetched items in a Supabase PostgreSQL database for persistence between sessions.
+<!-- Using Supabase for cloud-based persistent storage -->
 
 ### STO-002: Item Data Structure
 Each stored item shall contain:
+- Id (UUID, primary key, generated)
 - Source name (string, required)
 - Title (string, required)
 - Summary (string, optional)
-- Link (string, required)
+- Link (string, required, unique constraint)
 - Publication date (timestamp, optional)
-- Unique identifier (generated, required)
+- Is_read (boolean, default false)
+- Created_at (timestamp, auto-generated)
+- Updated_at (timestamp, auto-updated)
 
-### STO-003: Session Scope
-When the application exits, all stored items shall be discarded.
-<!-- No persistence in MVP -->
+### STO-003: Database Connection
+The system shall establish a connection to Supabase using:
+- SUPABASE_URL environment variable for the project URL
+- SUPABASE_SECRET_KEY environment variable for authentication
+<!-- Secret key provides full access, bypassing RLS -->
 
-### STO-004: Memory Limit
-The system shall not exceed 100MB of memory usage during normal operation with up to 100 sources.
+### STO-004: Basic Database Operations
+The system shall support basic database operations without optimization requirements in the MVP.
+<!-- Memory and database efficiency optimizations can be added post-MVP -->
 
-### STO-005: Item Identifier Generation
-The system shall generate a unique identifier for each item that remains consistent within a session.
-<!-- Used for the `open` command to reference specific items -->
+### STO-005: Item Identifier Persistence
+The system shall use database-generated UUIDs as item identifiers that persist across sessions.
+<!-- Enables reliable item references across sessions -->
 
 ### STO-006: Chronological Ordering
-The system shall maintain items in a structure that allows efficient chronological sorting.
+The system shall use database indexes on publication_date and created_at for efficient chronological sorting.
+
+### STO-007: Deduplication
+The system shall prevent duplicate items using a unique constraint on the link column in the database.
+
+### STO-008: Read Status Tracking
+The system shall track read/unread status for each item, persisting this state across sessions.
+
+### STO-009: Database Schema Migration
+The system shall check and create the required database schema on first run if tables don't exist.
+<!-- Service role key allows schema modifications -->
+
+### STO-010: Connection Error Handling
+When the database connection fails, the system shall:
+- Display a clear error message
+- Suggest checking network and configuration
+- Exit gracefully without data corruption
 
 ## 5. Content Display
 
@@ -199,7 +243,10 @@ While viewing paginated results, the system shall support:
 - Quit (q or Escape)
 
 ### DSP-008: Empty Feed Display
-When no items are available to display, the system shall show a message indicating the feed is empty and suggest running the `pull` command.
+When no unread items are available to display, the system shall:
+- Show a message indicating no unread items
+- Offer option to show all items including read ones
+- Suggest running the `pull` command if no items exist at all
 
 ### DSP-009: Color Support
 When the terminal supports color, the system shall use colors to differentiate:
@@ -220,7 +267,10 @@ When a title exceeds 80% of terminal width, the system shall truncate it with an
 The system shall provide an `open` command that accepts an item identifier as an argument.
 
 ### INT-002: Browser Launch
-When the open command is executed with a valid item identifier, the system shall launch the item's URL in the system's default web browser.
+When the open command is executed with a valid item identifier, the system shall:
+- Launch the item's URL in the system's default web browser
+- Mark the item as read in the database
+- Update the item's updated_at timestamp
 
 ### INT-003: Invalid Identifier Handling
 When the open command is executed with an invalid identifier, the system shall display an error message indicating the item was not found.
@@ -236,10 +286,19 @@ When the open command is executed without an item identifier, the system shall d
 ### INT-006: macOS Browser Integration
 On macOS, the system shall use the `open` system command to launch URLs in the default browser.
 
+### INT-007: Mark as Read Command
+The system shall provide a `mark-read` command that accepts an item identifier to mark items as read without opening them.
+
+### INT-008: Mark as Unread Command
+The system shall provide a `mark-unread` command that accepts an item identifier to mark items as unread.
+
+### INT-009: Mark All as Read
+The system shall provide a `mark-all-read` command to mark all items as read in a single operation.
+
 ## 7. CLI Interface
 
 ### CLI-001: Command Structure
-The system shall use subcommands for different operations: `pull`, `list`, and `open`.
+The system shall use subcommands for different operations: `pull`, `list`, `open`, `mark-read`, `mark-unread`, and `mark-all-read`.
 
 ### CLI-002: Help Flag
 Each command shall support a `--help` flag that displays:
@@ -314,8 +373,9 @@ The pull command shall complete within 30 seconds for up to 100 sources under no
 ### PRF-002: CLI Responsiveness
 Interactive CLI commands shall respond to user input within 100 milliseconds.
 
-### PRF-003: Memory Usage Limit
-The system shall not exceed 100MB of memory usage during normal operation.
+### PRF-003: Memory Usage
+The system shall operate within reasonable memory constraints for a CLI application.
+<!-- Specific memory optimization targets can be defined post-MVP -->
 
 ### PRF-004: Startup Time
 The application shall start and be ready for commands within 1 second.
@@ -346,6 +406,21 @@ The system shall not execute any code from fetched content.
 
 ### SEC-007: URL Scheme Restriction
 The system shall only accept HTTP and HTTPS URL schemes, rejecting file://, ftp://, and other schemes.
+
+### SEC-008: Secret Key Protection
+The system shall:
+- Only accept the secret key via environment variable
+- Never log, display, or echo the secret key value
+- Never store the secret key in any file
+- Mask the key in any debug output (show only first/last 4 chars)
+- Exit immediately if the key is attempted to be logged
+
+### SEC-009: Environment Variable Security
+The system shall:
+- Document that SUPABASE_SECRET_KEY must be kept secret
+- Recommend using secure secret management tools (e.g., 1Password CLI, macOS Keychain)
+- Never accept secret key via command-line arguments
+- Validate environment variables are set before any database operations
 
 ## 11. Platform Requirements
 
@@ -393,6 +468,8 @@ The system shall include integration tests for:
 ### TST-003: Mock Infrastructure
 The system shall provide mock implementations for:
 - Network requests (mock HTTP responses)
+- Database operations (mock Supabase client)
+- Environment variables (test-specific values)
 - File system operations (in-memory config)
 - System time (deterministic date handling)
 - Browser launching (capture open commands)
@@ -401,6 +478,7 @@ The system shall provide mock implementations for:
 Tests shall be organized as:
 - Unit tests in the same file as the code being tested (in `#[cfg(test)]` modules)
 - Integration tests in the `tests/` directory
+- Database tests using mocked environment variables and client
 - Test fixtures in `tests/fixtures/` for sample feeds and configs
 
 ### TST-005: Feed Parser Testing
@@ -418,15 +496,17 @@ The system shall include tests for:
 - Network timeouts
 - HTTP error responses (404, 500, etc.)
 - Invalid configuration files
+- Missing environment variables
+- Invalid environment variable values
 - Malformed feed data
 - File system permission errors
-- Missing dependencies
+- Database connection failures
 
 ### TST-007: Performance Testing
 The system shall include performance tests to verify:
-- Memory usage stays under 100MB with 100 sources
 - Fetch operations complete within timeout
 - CLI responsiveness requirements
+<!-- Memory usage testing can be added when optimization targets are defined -->
 
 ### TST-008: CLI Testing
 The system shall include tests for:
@@ -473,3 +553,10 @@ Test data shall be:
 - Stored in version control for reproducibility
 - Minimal but representative
 - Documented with source and purpose
+
+### TST-016: Environment Variable Testing
+The system shall include tests that:
+- Mock environment variables for all test scenarios
+- Verify proper error handling when variables are missing
+- Ensure secret key is never exposed in logs or errors
+- Test with invalid URLs and empty values

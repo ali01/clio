@@ -21,25 +21,28 @@ Create a simple, extensible command-line tool that serves as a unified inbox for
 #### MVP Must-Haves
 - Support for RSS/Atom feeds
 - Extensible architecture to allow for other source types
-- Configuration file (TOML) to define sources
+- Configuration file (TOML) to define sources only
+- Supabase connection via environment variables (SUPABASE_URL and SUPABASE_SECRET_KEY)
 - Basic fetch command to pull latest content from all sources
+- Persistent storage using Supabase PostgreSQL database
 - Command-line interface to view feed headlines in chronological order
 - Display title, source, date, and summary for each item
 - Simple pagination through feed items
 - Ability to open full content for an item on a browser
+- Mark items as read/unread status with persistent state
 
 #### Post-MVP Features
-- Persistent storage (SQLite database) to cache items between sessions
 - Additional source types (YouTube, Twitter/X, Substack, podcasts, arbitrary websites)
-- Mark items as read/unread
-- Search functionality
+- Advanced search functionality with full-text search
 - Superhuman-style splits that can be used to filter the feed
 - Scheduling/automatic background fetching
-- Web UI
+- Web UI (leveraging Supabase Auth and Realtime)
 - Mobile app
-- Multi-device sync
-- Content archiving
+- Multi-device sync (already enabled via Supabase)
+- Content archiving with configurable retention policies
 - Full-text content extraction
+- Collaborative features (shared feeds, annotations)
+- Analytics dashboard for reading habits
 
 #### Out of Scope
 - Social features (sharing, commenting, liking)
@@ -63,9 +66,12 @@ Create a simple, extensible command-line tool that serves as a unified inbox for
 - System shall handle feed errors gracefully without stopping other fetches
 
 **Data Storage**
-- Fetched items shall be stored in memory during runtime
-- Each item shall include: source, title, summary, link, publication date
-- Data is not persisted between sessions (fresh fetch required each run)
+- Fetched items shall be stored in Supabase PostgreSQL database
+- Each item shall include: source, title, summary, link, publication date, read status, first fetched timestamp
+- Data persists between sessions enabling incremental updates
+- Supabase connection strictly via environment variables (SUPABASE_URL and SUPABASE_SECRET_KEY)
+- Secret key bypasses Row Level Security for full database access
+- Automatic deduplication based on item URL
 
 **Content Display**
 - `list` command shall display items in reverse chronological order (newest first)
@@ -109,7 +115,9 @@ Create a simple, extensible command-line tool that serves as a unified inbox for
 
 **Security**
 - HTTPS should be used for all network requests when available
+- Supabase secret key must be stored in environment variables only
 - Configuration files should have appropriate file permissions (user-only access)
+- Secret key must never be logged, displayed, or stored in files
 
 ### Architecture
 #### Components
@@ -126,9 +134,12 @@ Create a simple, extensible command-line tool that serves as a unified inbox for
 - Error handling and retry logic
 
 **Data Layer**
-- In-memory storage using `Vec<Item>` or similar structure
-- Simple deduplication using HashSet for URLs
-- Models: Item, Source
+- Supabase PostgreSQL database for persistent storage
+- Database schema: items table with id, source_name, title, summary, link, pub_date, is_read, created_at, updated_at
+- Supabase client using secret key for unrestricted access (bypasses RLS)
+- Environment-based authentication only (no keys in config files)
+- Deduplication using unique constraint on link column
+- Models: Item, Source, with ORM/query builder integration
 
 **Configuration Loader**
 - TOML parser using toml crate
@@ -144,6 +155,10 @@ Create a simple, extensible command-line tool that serves as a unified inbox for
 
 Example config.toml structure:
 ```toml
+# Supabase connection configured via environment variables:
+# export SUPABASE_URL="https://your-project.supabase.co"
+# export SUPABASE_SECRET_KEY="sb_secret_..."
+
 [[sources.rss]]
 name = "Hacker News"
 url = "https://news.ycombinator.com/rss"
