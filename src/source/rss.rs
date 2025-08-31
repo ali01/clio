@@ -17,6 +17,56 @@ pub struct RssSource {
     client: Client,
 }
 
+#[async_trait]
+impl Source for RssSource {
+    async fn fetch(&self) -> Result<Vec<Item>, ClioError> {
+        let response = self
+            .client
+            .get(&self.url)
+            .send()
+            .await
+            .clio_network_err(format!("Failed to pull feed from {}", self.url))?;
+
+        if !response.status().is_success() {
+            return Err(ClioError::Network(format!(
+                "HTTP {} from {}",
+                response.status(),
+                self.url
+            )));
+        }
+
+        let content = response
+            .bytes()
+            .await
+            .clio_network_err("Failed to read response body")?;
+
+        // Try parsing as RSS first
+        if let Ok(items) = self.parse_rss(&content) {
+            return Ok(items);
+        }
+
+        // Try parsing as Atom
+        if let Ok(content_str) = std::str::from_utf8(&content) {
+            if let Ok(items) = self.parse_atom(content_str) {
+                return Ok(items);
+            }
+        }
+
+        Err(ClioError::Parse(format!(
+            "Failed to parse feed from {} as RSS or Atom",
+            self.url
+        )))
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn url(&self) -> &str {
+        &self.url
+    }
+}
+
 impl RssSource {
     /// Create a new RSS/Atom feed source
     pub fn new(name: String, url: String) -> Self {
@@ -162,56 +212,6 @@ impl RssSource {
     }
 }
 
-#[async_trait]
-impl Source for RssSource {
-    async fn pull(&self) -> Result<Vec<Item>, ClioError> {
-        let response = self
-            .client
-            .get(&self.url)
-            .send()
-            .await
-            .clio_network_err(format!("Failed to pull feed from {}", self.url))?;
-
-        if !response.status().is_success() {
-            return Err(ClioError::Network(format!(
-                "HTTP {} from {}",
-                response.status(),
-                self.url
-            )));
-        }
-
-        let content = response
-            .bytes()
-            .await
-            .clio_network_err("Failed to read response body")?;
-
-        // Try parsing as RSS first
-        if let Ok(items) = self.parse_rss(&content) {
-            return Ok(items);
-        }
-
-        // Try parsing as Atom
-        if let Ok(content_str) = std::str::from_utf8(&content) {
-            if let Ok(items) = self.parse_atom(content_str) {
-                return Ok(items);
-            }
-        }
-
-        Err(ClioError::Parse(format!(
-            "Failed to parse feed from {} as RSS or Atom",
-            self.url
-        )))
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn url(&self) -> &str {
-        &self.url
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -293,7 +293,7 @@ mod tests {
             .with_body(rss_content)
             .create();
         let source = create_test_source(&format!("{}/feed.xml", server.url()));
-        let result = source.pull().await;
+        let result = source.fetch().await;
 
         assert!(result.is_ok());
         let items = result.unwrap();
@@ -326,7 +326,7 @@ mod tests {
             .with_body(atom_content)
             .create();
         let source = create_test_source(&format!("{}/atom.xml", server.url()));
-        let result = source.pull().await;
+        let result = source.fetch().await;
 
         assert!(result.is_ok());
         let items = result.unwrap();
@@ -358,7 +358,7 @@ mod tests {
             .with_body(rss_content)
             .create();
         let source = create_test_source(&format!("{}/entities.xml", server.url()));
-        let result = source.pull().await;
+        let result = source.fetch().await;
 
         assert!(result.is_ok());
         let items = result.unwrap();
@@ -397,7 +397,7 @@ mod tests {
             .with_body(rss_content)
             .create();
         let source = create_test_source(&format!("{}/skip-invalid.xml", server.url()));
-        let result = source.pull().await;
+        let result = source.fetch().await;
 
         assert!(result.is_ok());
         let items = result.unwrap();
@@ -410,7 +410,7 @@ mod tests {
         let mut server = mockito::Server::new_async().await;
         let _m = server.mock("GET", "/404.xml").with_status(404).create();
         let source = create_test_source(&format!("{}/404.xml", server.url()));
-        let result = source.pull().await;
+        let result = source.fetch().await;
 
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), ClioError::Network(_)));
@@ -425,7 +425,7 @@ mod tests {
             .with_body("not valid xml")
             .create();
         let source = create_test_source(&format!("{}/malformed.xml", server.url()));
-        let result = source.pull().await;
+        let result = source.fetch().await;
 
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), ClioError::Parse(_)));
@@ -450,7 +450,7 @@ mod tests {
             .create();
 
         let source = create_test_source(&format!("{}/empty.xml", server.url()));
-        let result = source.pull().await;
+        let result = source.fetch().await;
 
         assert!(result.is_ok());
         let items = result.unwrap();

@@ -33,7 +33,7 @@ async fn test_parse_rss_detailed() {
         format!("{}/feed.xml", mock_server.uri()),
     );
 
-    let result = source.pull().await;
+    let result = source.fetch().await;
     assert!(result.is_ok(), "Failed to pull RSS feed: {result:?}");
 
     let items = result.unwrap();
@@ -73,7 +73,7 @@ async fn test_parse_atom_detailed() {
         format!("{}/feed.xml", mock_server.uri()),
     );
 
-    let result = source.pull().await;
+    let result = source.fetch().await;
     assert!(result.is_ok(), "Failed to pull Atom feed: {result:?}");
 
     let items = result.unwrap();
@@ -108,7 +108,7 @@ async fn test_parse_rss_with_entities() {
         format!("{}/feed.xml", mock_server.uri()),
     );
 
-    let result = source.pull().await;
+    let result = source.fetch().await;
     assert!(result.is_ok(), "Failed to pull with entities: {result:?}");
 
     let items = result.unwrap();
@@ -146,7 +146,7 @@ async fn test_parse_various_date_formats() {
         format!("{}/feed.xml", mock_server.uri()),
     );
 
-    let result = source.pull().await;
+    let result = source.fetch().await;
     assert!(result.is_ok());
 
     let items = result.unwrap();
@@ -199,7 +199,7 @@ async fn test_malformed_feed_error() {
         format!("{}/feed.xml", mock_server.uri()),
     );
 
-    let result = source.pull().await;
+    let result = source.fetch().await;
     assert!(result.is_err(), "Should fail to parse malformed XML");
 
     let error = result.unwrap_err();
@@ -224,7 +224,7 @@ async fn test_http_404_error() {
         format!("{}/missing.xml", mock_server.uri()),
     );
 
-    let result = source.pull().await;
+    let result = source.fetch().await;
     assert!(result.is_err());
 
     let error = result.unwrap_err();
@@ -249,7 +249,7 @@ async fn test_http_500_error() {
         format!("{}/error.xml", mock_server.uri()),
     );
 
-    let result = source.pull().await;
+    let result = source.fetch().await;
     assert!(result.is_err());
 
     let error = result.unwrap_err();
@@ -282,7 +282,7 @@ async fn test_empty_feed() {
         format!("{}/empty.xml", mock_server.uri()),
     );
 
-    let result = source.pull().await;
+    let result = source.fetch().await;
     assert!(result.is_ok());
 
     let items = result.unwrap();
@@ -334,7 +334,7 @@ async fn test_items_with_missing_fields() {
         format!("{}/partial.xml", mock_server.uri()),
     );
 
-    let result = source.pull().await;
+    let result = source.fetch().await;
     assert!(result.is_ok());
 
     let items = result.unwrap();
@@ -387,7 +387,7 @@ async fn test_whitespace_normalization() {
         format!("{}/whitespace.xml", mock_server.uri()),
     );
 
-    let result = source.pull().await;
+    let result = source.fetch().await;
     assert!(result.is_ok());
 
     let items = result.unwrap();

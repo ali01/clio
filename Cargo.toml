@@ -24,6 +24,7 @@ url = "2.5"
 thiserror = "1.0"
 async-trait = "0.1"
 uuid = { version = "1.10", features = ["v4"] }
+futures = "0.3"
 
 [dev-dependencies]
 mockito = "1.0"
@@ -36,3 +37,7 @@ test-case = "3.1"
 criterion = "0.5"
 wiremock = "0.6"
 fake = "2.9"
+
+[[bench]]
+name = "fetcher_benchmark"
+harness = false

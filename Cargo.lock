@@ -359,6 +359,7 @@ dependencies = [
  "crossterm",
  "dirs",
  "fake",
+ "futures",
  "html-escape",
  "insta",
  "mockito",

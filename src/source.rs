@@ -30,9 +30,9 @@ pub trait Source: Send + Sync + Debug {
 
     /// Get the URL of this source
     fn url(&self) -> &str;
-    
-    /// Pull all items from this source
-    async fn pull(&self) -> Result<Vec<Item>, ClioError>;
+
+    /// Fetch all items from this source
+    async fn fetch(&self) -> Result<Vec<Item>, ClioError>;
 }
 
 #[cfg(test)]
@@ -50,7 +50,7 @@ mod tests {
 
     #[async_trait]
     impl Source for MockSource {
-        async fn pull(&self) -> Result<Vec<Item>, ClioError> {
+        async fn fetch(&self) -> Result<Vec<Item>, ClioError> {
             if self.should_fail {
                 Err(ClioError::Network("Mock network error".to_string()))
             } else {
@@ -85,7 +85,7 @@ mod tests {
             should_fail: false,
         };
 
-        let result = source.pull().await;
+        let result = source.fetch().await;
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), items);
         assert_eq!(source.name(), "Test Source");
@@ -101,7 +101,7 @@ mod tests {
             should_fail: true,
         };
 
-        let result = source.pull().await;
+        let result = source.fetch().await;
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), ClioError::Network(_)));
     }

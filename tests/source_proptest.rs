@@ -143,7 +143,7 @@ mod feed_content_tests {
                     format!("{}/feed.xml", mock_server.uri()),
                 );
 
-                let result = source.pull().await;
+                let result = source.fetch().await;
                 prop_assert!(result.is_ok(), "Failed to pull feed with title: {}", title);
 
                 let items = result.unwrap();
@@ -193,7 +193,7 @@ mod feed_content_tests {
                     format!("{}/unicode.xml", mock_server.uri()),
                 );
 
-                let result = source.pull().await;
+                let result = source.fetch().await;
                 prop_assert!(result.is_ok());
 
                 let items = result.unwrap();
@@ -243,7 +243,7 @@ mod feed_content_tests {
                     format!("{}/atom.xml", mock_server.uri()),
                 );
 
-                let result = source.pull().await;
+                let result = source.fetch().await;
                 prop_assert!(result.is_ok());
 
                 let items = result.unwrap();

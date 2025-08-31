@@ -5,7 +5,7 @@
 - ✅ **Stage 1: Foundation** - CLI structure, error handling, testing infrastructure
 - ✅ **Stage 2: Configuration Management** - TOML config loading and validation
 - ✅ **Stage 3: Source Abstraction** - Source trait and RSS/Atom implementation
-- ⏳ **Stage 4: Content Fetching** - Parallel feed fetching
+- ✅ **Stage 4: Content Fetching** - Parallel feed fetching with timeout and stats
 - ⏳ **Stage 5: Storage System** - In-memory item storage
 - ⏳ **Stage 6: Pull Command** - Full pull workflow
 - ⏳ **Stage 7: Display System** - Terminal UI and pagination
@@ -254,31 +254,40 @@ enum ClioError {
 - Fixed all clippy lints (inline format strings, no unnecessary allocations)
 - Comprehensive test coverage with 27 unit tests and 18 integration tests
 
-### Stage 4: Content Fetching
+### Stage 4: Content Fetching ✅ COMPLETED
 **Goal**: Implement parallel feed fetching with testing
 
-1. **Create fetcher module** (fetcher.rs)
-   - Set up tokio runtime
-   - Spawn concurrent fetch tasks
-   - Implement timeout handling (10s per source)
+1. **Create fetcher module** (fetcher.rs) ✅
+   - Set up tokio runtime with futures::join_all
+   - Spawn concurrent fetch tasks using tokio::spawn
+   - Implement timeout handling (10s per source, configurable)
    - Collect results with error handling
    - Progress feedback during fetching
    - **Tests**:
-     - Concurrent fetching with mock sources
-     - Timeout behavior tests
+     - 10 unit tests for concurrent fetching with mock sources
+     - Timeout behavior tests with custom delays
      - Error handling with partial failures
      - Progress reporting tests
 
-2. **Add fetch statistics**
-   - Track successful/failed sources
+2. **Add fetch statistics** ✅
+   - FetchStats struct tracks successful/failed sources
    - Count total items fetched
    - Display summary after completion
-   - **Tests**: Statistics calculation tests
+   - Collect error messages for failed sources
+   - **Tests**: Statistics calculation and display tests
 
-3. **Performance tests**
-   - Test with 100 mock sources
-   - Verify 30-second completion
-   - Memory usage monitoring
+3. **Performance tests** ✅
+   - Created benchmarks with 100 mock sources
+   - Verify 30-second completion requirement
+   - Memory usage monitoring (<10MB for 100 sources)
+   - Integration tests with up to 50 sources
+
+**Implementation Notes:**
+- Renamed `pull()` method to `fetch()` throughout codebase
+- Used `join_all` for cleaner async handling
+- Fetcher uses `fetch_one()` internally to avoid code duplication
+- Added `futures = "0.3"` dependency for join_all support
+- Total: 10 fetcher unit tests + 9 integration tests + 5 benchmarks
 
 ### Stage 5: Storage System
 **Goal**: Implement in-memory item storage with testing
