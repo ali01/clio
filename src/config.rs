@@ -24,7 +24,7 @@ pub struct RssSource {
     pub url: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct SupabaseConfig {
     pub url: String,
     pub secret_key: String,
@@ -211,6 +211,15 @@ impl SupabaseConfig {
     }
 }
 
+impl std::fmt::Debug for SupabaseConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SupabaseConfig")
+            .field("url", &self.url)
+            .field("secret_key", &"<REDACTED>")
+            .finish()
+    }
+}
+
 impl RssSource {
     // Public for use in integration tests
     #[allow(dead_code)]
@@ -222,6 +231,8 @@ impl RssSource {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(test)]
+    use serial_test::serial;
 
     #[test]
     fn test_config_serialization() {
@@ -407,6 +418,7 @@ name = "Test Feed"
     }
 
     #[test]
+    #[serial]
     fn test_supabase_config_from_env_missing_url() {
         // Clear environment variables
         unsafe {
@@ -424,6 +436,7 @@ name = "Test Feed"
     }
 
     #[test]
+    #[serial]
     fn test_supabase_config_from_env_missing_secret_key() {
         unsafe {
             env::set_var("SUPABASE_URL", "https://test.supabase.co");
@@ -445,6 +458,7 @@ name = "Test Feed"
     }
 
     #[test]
+    #[serial]
     fn test_supabase_config_invalid_url_scheme() {
         unsafe {
             env::set_var("SUPABASE_URL", "http://test.supabase.co");
@@ -464,6 +478,7 @@ name = "Test Feed"
     }
 
     #[test]
+    #[serial]
     fn test_supabase_config_invalid_url_format() {
         unsafe {
             env::set_var("SUPABASE_URL", "not-a-url");
@@ -486,6 +501,7 @@ name = "Test Feed"
     }
 
     #[test]
+    #[serial]
     fn test_supabase_config_empty_secret_key() {
         unsafe {
             env::set_var("SUPABASE_URL", "https://test.supabase.co");
@@ -508,6 +524,7 @@ name = "Test Feed"
     }
 
     #[test]
+    #[serial]
     fn test_supabase_config_invalid_secret_key_prefix() {
         unsafe {
             env::set_var("SUPABASE_URL", "https://test.supabase.co");
@@ -533,6 +550,7 @@ name = "Test Feed"
     }
 
     #[test]
+    #[serial]
     fn test_supabase_config_valid() {
         unsafe {
             env::set_var("SUPABASE_URL", "https://test.supabase.co");
@@ -553,6 +571,7 @@ name = "Test Feed"
     }
 
     #[test]
+    #[serial]
     fn test_supabase_config_url_with_path() {
         unsafe {
             env::set_var("SUPABASE_URL", "https://test.supabase.co/auth/v1");
@@ -572,6 +591,7 @@ name = "Test Feed"
     }
 
     #[test]
+    #[serial]
     fn test_supabase_config_secret_key_not_logged() {
         // This test verifies that the secret key is not exposed in debug output
         unsafe {

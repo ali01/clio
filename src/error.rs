@@ -10,6 +10,9 @@ pub trait ErrorContext<T> {
 
     #[allow(dead_code)]
     fn clio_parse_err(self, msg: impl Display) -> std::result::Result<T, ClioError>;
+
+    #[allow(dead_code)]
+    fn clio_database_err(self, msg: impl Display) -> std::result::Result<T, ClioError>;
 }
 
 impl<T, E: Display> ErrorContext<T> for std::result::Result<T, E> {
@@ -24,6 +27,10 @@ impl<T, E: Display> ErrorContext<T> for std::result::Result<T, E> {
     fn clio_parse_err(self, msg: impl Display) -> std::result::Result<T, ClioError> {
         self.map_err(|e| ClioError::Parse(format!("{msg}: {e}")))
     }
+
+    fn clio_database_err(self, msg: impl Display) -> std::result::Result<T, ClioError> {
+        self.map_err(|e| ClioError::Database(format!("{msg}: {e}")))
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -36,6 +43,9 @@ pub enum ClioError {
 
     #[error("Parse error: {0}")]
     Parse(String),
+
+    #[error("Database error: {0}")]
+    Database(String),
 }
 
 impl From<toml::de::Error> for ClioError {
